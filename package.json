@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build-1": "webpack",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "b-1": "webpack --config step1.config.js"
   },
   "keywords": [],
   "author": "",

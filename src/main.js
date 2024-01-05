@@ -1,5 +1,5 @@
 function sayHi() {
-  console.log('hi ice')
+  console.log('hi ice 24')
 }
 sayHi()
 
