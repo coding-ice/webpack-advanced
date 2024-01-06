@@ -1,8 +1,8 @@
-const path = require('path')
+const { resolve } = require('path')
 module.exports = {
-  entry: path.resolve(__dirname, "./src/main.js"),
+  entry: resolve(__dirname, './src/main.js'),
   output: {
-    path: path.resolve(__dirname, 'build'),
-    filename: 'bundle.js'
+    path: resolve(__dirname, 'build'),
+    filename: 'bundle.js',
   },
 }
