@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "b-1": "webpack --config step1.config.js"
+    "b-0": "webpack --config ./packages/0.start/webpack.config.js",
+    "b-1": "webpack --config ./packages/1.mode_devtool/webpack.config.js"
   },
   "keywords": [],
   "author": "",
