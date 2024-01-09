@@ -320,3 +320,20 @@ not dead // 还在维护的
 graph LR
 postcss/babel-- browserslist --->caniuse
 ```
+
+## 打包React代码
+本节代码见：`3.build_react`  
+前面我们讲过可以通过`babel`打包`js`语法，
+而`react`使用的是`jsx`代码。`jsx`其实是`js`代码的扩展，加了一些特定的语法而已
+- 以前：`jsx`通过`babel`打包成`react.createElement`,所以说`jsx`其实是`react.createElement`的语法糖
+- `v18`后，本质是从`react/jsx-runtime`引入的`jsx`
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/9432196b62e640fdbfbb45df9dd2f331~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2424&h=874&s=96046&e=png&b=2c2c2c)
+我们了解到这里即可，因为如果没有`jsx`语法，我们写嵌套的结构简直是噩梦。  
+直观感受下`Count`组件，所以才需要`jsx`语法，更接近`html`让我们更容易上手
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d840d5360a77462a9f5c369195b3fe3e~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2400&h=802&s=185419&e=png&b=2c2c2c)
+
+**编写React应用**
+```
+pnpm i react react-dom
+```
