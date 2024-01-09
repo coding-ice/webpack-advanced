@@ -41,7 +41,7 @@ pnpm i webpack webpack-cli -D
 │       └── webpack.config.js
 └── pnpm-lock.yaml
 ```
-类似于`monorepo`的组织方式
+类似于`monorepo`的组织方式，但是`package.json`只存在一个,不需要`cd`到对应的目录下
 
 ## 起手式
 本节代码见：`0.start`
