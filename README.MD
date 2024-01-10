@@ -5,44 +5,36 @@
 
 ## 安装
 ```shell
-# 创建文件夹
-mkdir learn-webpack 
-# 进入文件夹
-cd learn-webpack
-# 初始化
 pnpm init
 # 安装依赖
 pnpm i webpack webpack-cli -D
 ```
 ## 结构划分
 代码仓库：https://github.com/GetWebHB/webpack-advanced
-- 每一个小的章节，都会存放在对应的文件夹中（例：`0.start`），文件夹会存放对应的**配置文件**,**源代码**，**产物**。打包命令如下所示，`b-0`为`build-step0`的简写，方便大家理解
+- 每一个小的章节，都会存放在对应的文件夹中（例：`0.start`），文件夹会存放对应的**配置文件**,**源代码**，**产物**。打包命令如下所示，`npm run build`
 ```js
-// package.json
-  "scripts": {
-    "b-0": "webpack --config ./packages/0.start/webpack.config.js"
-  },
+// src/0.start/package.json
+"scripts": {
+  "build": "webpack",
+},
 ```
-`scripts`脚本，本质上就只在`.bin`文件夹下寻找webpack, 即`npm run b-0`等同于`npx webpack`，`--config`代表配置文件存在的目录。  
-因为每个章节都会有不一样的配置，给它们拆分开这样会更加清晰。如果是公司项目中不需要这样，一般只会有一个配置文件`webpack.config.js`,存放在同`package.json`目录，就不需要指定配置文件路径，执行`npm run build`会自动去根目录查找`webpack.config.js`配置文件
-
-
-
+`scripts`脚本，本质上就只在`.bin`文件夹下寻找webpack, 即`npm run build`等同于`npx webpack`，默认会去存在`package.json`(即根目录查找配置文件`webpack.config.js`) ，它的`filename`可以更改,`--config filename`即可  
 **目录结构**
 ```
 ├── README.MD
+├── package-lock.json
 ├── package.json
-├── packages
-│   └── 0.start
-│       ├── build
-│       │   └── bundle.js
-│       ├── src
-│       │   └── main.js
-│       └── webpack.config.js
-└── pnpm-lock.yaml
+└── src
+    ├── 0.start
+    │   ├── build
+    │   │   └── bundle.js
+    │   ├── package.json
+    │   ├── pnpm-lock.yaml
+    │   ├── src
+    │   │   └── main.js
+    │   └── webpack.config.js
 ```
-类似于`monorepo`的组织方式，但是`package.json`只存在一个,不需要`cd`到对应的目录下
-
+`src`下是每个小节的代码，`cd`当前的小节，执行`pnpm install / npm run build`即可
 ## 起手式
 本节代码见：`0.start`
 
@@ -58,7 +50,7 @@ export { sayHi }
 const { resolve } = require('path')
 
 module.exports = {
-  entry: resolve(__dirname, './src/main.js'),
+  entry: './src/main.js',
   output: {
     path: resolve(__dirname, 'build'),
     filename: 'bundle.js',
@@ -67,15 +59,15 @@ module.exports = {
 
 ```
 - 简单走读一下，`cjs`的方式导出了一个对象
-1. `entry`代表入口，发现我们使用的是绝对路径，因为默认情况下相对路径为`package.json`存在的目录
+1. `entry`代表入口，默认情况下相对路径为`package.json`存在的目录
 2. `output`代表出口，即产物打包后的位置，同样是绝对路径，打包到`build`的文件夹下，文件名为`bundle.js`
-3. `npm run b-0`, 即打包产物，就会发现该目录下出现了产物
+3. `npm run build`, 即打包产物，就会发现该目录下出现了产物
 ## mode&devtool
 本节代码见：`1.mode_devtool`  
 上一小节中，我们学习到了`entry`,`output`这两项配置，这一章节中，我们学习`mode`和`devtool`  
 ### mode
 概述：告诉webpack使用相应模式的内置优化  
-当我们执行`npm run b-0`的时候，`webpack`会有这一串警告，说我们没有设置`mode`
+当我们执行`npm run build`的时候，`webpack`会有这一串警告，说我们没有设置`mode`
 ![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/eee36533672c4c66aa9554840223f861~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1834&h=654&s=117215&e=png&b=282c34)
 那什么是模式（即`mode`）,从提示看说我们可以设置为`development`or`production`   
 **传送门**：https://webpack.js.org/configuration/mode/
@@ -208,7 +200,7 @@ console.log(double) // [2,4,6]
 ```shell
 pnpm i @babel/plugin-transform-arrow-functions @babel/plugin-transform-block-scoping babel-loader -D
 ```
-走读一下配置，`module`中`rules`，匹配`js`文件，采用`loader`进行转换,其中`configFile`代表`babel.config.js`的路径，如果不配置这个路径则默认去`root`去查找配置文件(即`package.json`的目录)  
+走读一下配置，`module`中`rules`，匹配`js`文件，采用`loader`进行转换,
 `options`里可以写`babel`的配置，也可以单独抽成一个独立的文件（`babel.config.js`）
 ```js
 // webpack.config.js
@@ -216,7 +208,7 @@ const { resolve } = require('path')
 
 module.exports = {
   mode: 'production',
-  entry: resolve(__dirname, './src/main.js'),
+  entry: './src/main.js',
   output: {
     path: resolve(__dirname, 'build'),
     filename: 'bundle.js',
@@ -227,7 +219,7 @@ module.exports = {
         test: /\.js$/,
         loader: 'babel-loader',
         options: {
-          configFile: resolve(__dirname, "./babel.config.js"),
+          // ...一些配置
         },
       },
     ],
@@ -241,7 +233,7 @@ module.exports = {
   plugins: ['@babel/plugin-transform-block-scoping', '@babel/plugin-transform-arrow-functions'],
 }
 ```
-执行`npm run b-2`查看打包的产物就会发现已经转换好了  
+执行`npm run build`查看打包的产物就会发现已经转换好了  
 那么当我们高级语法有很多很多，比如`promise async await`等，我们难道一个一个去安装插件吗，这样显得太繁琐了，所以这个时候`preset`（预设）就登场了，提前把那些高级特性全部帮我们设置好
 ```shell
 pnpm i @babel/preset-env -D
@@ -252,7 +244,7 @@ module.exports = {
   presets: ['@babel/preset-env'],
 }
 ```
-接下来，在执行`npm run b-2`,效果一样，但是已经帮我们设置好了预设，高级语法都会被打包成低版本的代码，那提前帮我们安装了哪些插件呢？
+接下来，在执行`npm run build`,效果一样，但是已经帮我们设置好了预设，高级语法都会被打包成低版本的代码，那提前帮我们安装了哪些插件呢？
 详见：https://babel.docschina.org/docs/babel-preset-env  
 `@babel/preset-env` 其中的`env`即是根据环境查询兼容性（`browserslist`）后面我们会讲解到
 ### polyfill
@@ -300,6 +292,7 @@ module.exports = {
 `corejs:3` 代表第三个版本  
 `modules`默认是`auto`,但实际在我的`Mac`上，会报错不支持`cjs`的问题，所以我改了下，有可能在`windows`不需要配置，这点还没测试过。**如果你使用了高级特性，但是代码没有`polyfill`,请看下个章节`browserslist`,在那里你会找到答案（把市场占有率调低一些比如 > 0.1%）**
 ## browserslist
+本节代码见：`2.babel`  
 在谈起浏览器的兼容性，`browserslist`一定是前端必不可少的工具，早期无论是处理`css`(添加浏览器前缀)，还是`ES6+ -> ES5`。好比，我们针对的用户都是一些大学生，普遍这些用户电脑上的浏览器都是较新的，那这些浏览器本身就支持`ES6+`的语法，我们就没有必要去转换为`ES5`的代码，我们来简单介绍一下它
 
 ```
