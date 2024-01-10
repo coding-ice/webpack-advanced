@@ -144,7 +144,7 @@ export { sayHi }
 ![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1d1334a74c42429fa2b22212c10c7c7c~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1638&h=322&s=22788&e=png&b=fefafa)
 竟然神奇的映射出来了源代码的位置（第几行，甚至第几个字符），非常的神奇是吧
 
-![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/73fbc31fcfa44dc48ee8ae834a609a4c~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=638&h=346&s=34665&e=png&b=fffbfb)
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/73fbc31fcfa44dc48ee8ae834a609a4c~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=638&h=346&s=34665&e=png&b=fffbfb)  
 接下来，让我们继续深入探究，简单看下`map`文件
 
 ![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/27b9d0dbcfa44df88d310b7cdd709964~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2112&h=356&s=78981&e=png&b=292d35)
@@ -326,7 +326,98 @@ postcss/babel-- browserslist --->caniuse
 直观感受下`Count`组件，所以才需要`jsx`语法，更接近`html`让我们更容易上手
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d840d5360a77462a9f5c369195b3fe3e~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2400&h=802&s=185419&e=png&b=2c2c2c)
 
-**编写React应用**
+### 编写React应用
 ```
 pnpm i react react-dom
 ```
+
+```jsx
+//Counter.jsx
+import React, { memo, useState } from 'react'
+
+const Counter = memo(() => {
+  const [count, setCount] = useState(0)
+  return (
+    <div className='count'>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+      <span style={{padding: '0 8px'}}>{count}</span>
+      <button onClick={() => setCount(count - 1)}>-1</button>
+    </div>
+  )
+})
+
+export default Counter
+
+// App.js
+import React from 'react'
+import { createRoot } from '../node_modules/react-dom/client.js'
+import Counter from './components/Counter.jsx'
+
+const root = createRoot(document.getElementById('root'))
+root.render(<Counter />)
+```
+就是一个简单的计数器代码，但是笔者遇到一个比较奇怪的问题，就是默认引入`react-dom/client.js`的时候，没有向上查找（`node_modules`），所以这里写了相对路径，效果如下
+
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/b6a5320838f942e0ad187667402363b1~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2448&h=864&s=209553&e=png&b=272b32)  暂时没定位出来哪里的问题，如果知道的同学可以指点一下, 接下来我们应用就就好了，我们执行`build` 
+### 使用babel-loader
+**错误：不支持jsx**
+
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/38e013f1325b490e9e5a506fb9266a8a~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2350&h=538&s=157060&e=png&b=282c34)
+报错信息：告诉我们需要一个合适的`loader`来处理`jsx`类型的文件,因为我们之前使用`loader`,`rules`规则中并没有匹配它，`webpack`不知道如何去解析它  
+**解决办法**
+```js
+// webpack.config.js
+module: {
+  rules: [
+    {
+      test: /\.jsx?$/,
+      loader: 'babel-loader',
+    },
+  ],
+},
+```
+正则`?`代表1个或者0个，告诉它使用`babel`进行处理，然而它也需要许多插件对`jsx`代码进行支持，因为`plugin`过于繁琐，我能直接使用预设即可
+
+```shell
+pnpm i @babel/preset-react -D
+```
+
+```js
+module.exports = {
+  presets: ['@babel/preset-env', '@babel/preset-react'],
+}
+```
+再次执行`npm run build`我们就发现代码已经打包成功,，但是这里还差最后一步，我们在编写`jsx`代码的时候，是要把`react`应用挂载在`#root`上的，但是我们现在并没有`html`文件。当然我们也可以手动创建，但是这样太过于繁琐。我们可以使用另外一个插件，直接把产物挂载到`html`上即可
+### html-webpack-plugin
+```
+pnpm i html-webpack-plugin -D
+```
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+```
+```js
+// webpack.config.js
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+module.exports = {
+  // ...
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './index.html',
+    }),
+  ],
+}
+```
+`build`以后就发现已经构建完毕
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a37ec8c49eca475da4819f7c1dbb03af~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=352&h=176&s=12552&e=png&b=23272d)  
+一个简单的计数器`React`应用，我们就构建好啦～
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/21bafbbe76164fc4913b96cb743540ce~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1018&h=430&s=48454&e=png&b=fdfdfd)
