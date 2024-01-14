@@ -417,7 +417,183 @@ module.exports = {
   ],
 }
 ```
-`build`以后就发现已经构建完毕
+`build`以后就发现已经构建完毕，我们利用`live server`开启一个本地服务预览，后面我们还会讲解开启一个本地服务，热更新等，构建一个小型的开发环境  
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a37ec8c49eca475da4819f7c1dbb03af~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=352&h=176&s=12552&e=png&b=23272d)  
 一个简单的计数器`React`应用，我们就构建好啦～
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/21bafbbe76164fc4913b96cb743540ce~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1018&h=430&s=48454&e=png&b=fdfdfd)
+
+## devServer
+本小节见`4.webpack_dev_server`  
+上一小节中，我们说到打包`react`应用，但是需要我们手动进行`build`，但是在实际开发中，肯定不可能这样，每次修改一次代码，就`build`一下，所以我们要像一些常规的`cli`一样，开启一个本地服务进行开发      
+**安装**
+```shell
+pnpm i webpack-dev-server -D
+```
+```js
+// package.json
+"scripts": {
+  "start": "webpack server",
+},
+```
+**启动**
+
+`npm run start`这样就开启了一个服务了，端口在8080，我们直接打开这个地址即可,同时也会进行热更新
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/29559d7fdddf4892854cf956c0e7429e~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2146&h=920&s=296067&e=png&b=282c34)
+
+### static
+#### 演练场
+我们启动的这个服务，不像`build`,它是实实在在的文件，而我们开启的本地服务内容都是在内存当中的，其中打包的静态资源，一般都需要存放到`public`文件夹中。
+**错误演练**
+
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/91ff790493f94d3ab9480f207a8938a5~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2928&h=1300&s=223348&e=png&b=282b33)
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4d70f1326469458782538a93f680baf2~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=3010&h=1320&s=218634&e=png&b=ffffff)
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/62e2fa8a397e4d5c906204c43dd334bd~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1488&h=1346&s=265148&e=png&b=fcfcfc)
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2508fca069344dbaaf92d960f8745423~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1488&h=1346&s=265148&e=png&b=fcfcfc)
+从上面内容，我们可以得知，`avatar.jpg`请求的地址，正是我们开启服务的地址，但是这个地址的内容都是存在于内存当中，即使我们在目录下存放了图片文件，该服务不知道从哪里去寻找  
+**解决办法**
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/393bb973f4744a2cb30b28fa3a3bc424~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=558&h=462&s=43263&e=png&b=282c34)
+- 我们修改一下`avatar`的存在目录即可，把它修正到`public`文件夹中即可
+```tsx
+const Profile = memo(() => {
+  return (
+    <div>
+      avatar1: <img src="../../avatar.jpg"/> <br/>
+      avatar2: <img src="/avatar.jpg"/>
+    </div>
+  )
+})
+```
+`avatar1`是走的相对路径，`avatar2`，`/avatar`代表的从根目录进行查找，最后它两都是从`8080`端口下访问资源，那为什么是`public`文件夹呢，不是`abc`呢
+
+#### 配置详解
+- default（public）
+    - 它的默认值为`public`所以在这个文件夹下的资源，可以被访问到，如果想要改成其他文件夹，直接修改配置即可
+    ```js
+      devServer: {
+        static: ['public', 'abc'],
+      },
+    ```
+    如果是一个数组，那么它们两个文件夹都会起作用
+### open
+- 自动打开浏览器窗口
+### port
+- 修改端口号
+### compress
+- 开启`gzip`压缩，效果如下
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2aef7f0b05e6429e883009b5c615a706~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=3024&h=1002&s=352528&e=png&b=ffffff)
+### proxy
+在我们日常开发中，经常会遇到跨域的问题，解决方案有很多种
+- 生产阶段
+    - 通过`nginx`进行反向代理来解决跨域问题
+    - 后端开启CORS
+        - Access-Control-Allow-Origin: *
+- 开发阶段
+    - 后端开启CORS
+    - 利用`devServer开启Proxy`，本文重点讲解，其他大家自行了解
+#### 后端服务
+本节代码见：`koa`  
+我们采用`Koa`编写
+```shell
+pnpm i koa koa-router
+```
+```js
+const Koa = require('koa')
+const Router = require('koa-router')
+
+const app = new Koa()
+const userRouter = new Router({ prefix: '/users' })
+
+userRouter.get('/', (ctx, next) => {
+  const users = [
+    {
+      name: 'ice',
+      age: 24,
+    },
+    {
+      name: 'panda',
+      age: 23,
+    },
+  ]
+
+  ctx.body = users
+})
+
+app.use(userRouter.routes())
+app.listen(3000, () => {
+  console.log('服务启动成功')
+})
+```
+#### 前端代码
+```jsx
+import React, { memo, useEffect,useState } from 'react'
+import axios from 'axios'
+
+const Users = memo(() => {
+  const [list, setList] = useState([])
+  useEffect(() => {
+    axios.get('http://localhost:3000/users').then(res => {
+      setList(res.data)
+    })
+  }, [])
+
+  return (
+    <div>
+      <h4>Users:</h4>
+      <ul>
+        {list.map(({name, age}) => {
+          return <li key={name}>{name}-{age}</li>
+        })}
+      </ul>
+    </div>
+  )
+})
+
+export default Users
+```
+当我们访问浏览器就会看到这样的错误
+
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fef79125ecfd497584b5e4a2cacc3609~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1226&h=358&s=84452&e=png&b=282828)
+这正是跨域的错误，因为我们的前端服务开启在`8080`端口上，而后端的`api`服务开启在`3000`上，我们不能进行访问，这个是浏览器的限制，违背了同源策略，那么我们如何解决这个问题呢？
+
+#### 解决办法
+1. 后端解决开启`CORS`
+```js
+  ctx.set('Access-Control-Allow-Origin', '*')
+```
+2. 利用`proxy`开启代理
+```js
+// webpack.config.js
+proxy: {
+  '/api': {
+    target: 'http://localhost:3000',
+    pathRewrite: {
+      '^/api': '',
+    },
+  },
+},
+```
+```js
+axios.get('/api/users').then(res => {
+  setList(res.data)
+})
+```
+当我们以`/api`开头的，就会被代理到`proxy`中，而它是使用的`http-proxy-middleware`，是它开启的服务去我们`3000`端口请求数据，拿到数据以后在通过它返回给客户端这样就完成了代理，而`pathRewrite`是正则匹配，把以`/api`开头的，我们给它替换为空地址，最后拼接而成的就是后端`api`的地址
+```js
+// before
+// /api/users
+
+// after
+// http://localhost:3000/users
+```
+**proxy原理**：中间人模式
+
+```mermaid
+flowchart LR
+前端 --> proxy --> 后端api
+后端api --> proxy --> 前端
+```
