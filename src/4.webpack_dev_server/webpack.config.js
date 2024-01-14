@@ -23,6 +23,9 @@ module.exports = {
     }),
   ],
   devServer: {
+    open: true,
+    // port: 3000,
+    compress: true,
     static: ['public', 'abc'],
   },
 }

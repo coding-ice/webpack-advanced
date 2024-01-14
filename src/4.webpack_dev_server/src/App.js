@@ -3,11 +3,13 @@ import React from 'react'
 import { createRoot } from '../node_modules/react-dom/client.js'
 import Counter from './components/Counter.jsx'
 import Profile from './components/Profile.jsx'
+import Users from './components/Users.jsx'
 
 const root = createRoot(document.getElementById('root'))
 root.render(
   <>
     <Profile />
     <Counter />
+    <Users />
   </>
 )
