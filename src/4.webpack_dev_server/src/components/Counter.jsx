@@ -5,7 +5,7 @@ const Counter = memo(() => {
   return (
     <div className="count">
       <button onClick={() => setCount(count + 1)}>+1</button>
-      <span style={{padding: '0 8px'}}>{count}</span>
+      <span style={{padding: '0 8px'}}>c:{count}</span>
       <button onClick={() => setCount(count - 1)}>-1</button>
     </div>
   )
