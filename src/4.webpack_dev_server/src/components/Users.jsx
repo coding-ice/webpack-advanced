@@ -4,7 +4,7 @@ import axios from 'axios'
 const Users = memo(() => {
   const [list, setList] = useState([])
   useEffect(() => {
-    axios.get('http://localhost:3000/users').then(res => {
+    axios.get('/api/users').then(res => {
       setList(res.data)
     })
   }, [])

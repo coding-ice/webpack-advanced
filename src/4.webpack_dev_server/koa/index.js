@@ -5,6 +5,7 @@ const app = new Koa()
 const userRouter = new Router({ prefix: '/users' })
 
 userRouter.get('/', (ctx, next) => {
+  // ctx.set('Access-Control-Allow-Origin', '*')
   const users = [
     {
       name: 'ice',
