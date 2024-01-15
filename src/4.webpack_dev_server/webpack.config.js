@@ -33,6 +33,7 @@ module.exports = {
         pathRewrite: {
           '^/api': '',
         },
+        changeOrigin: true,
       },
     },
   },

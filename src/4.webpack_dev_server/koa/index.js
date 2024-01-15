@@ -6,6 +6,7 @@ const userRouter = new Router({ prefix: '/users' })
 
 userRouter.get('/', (ctx, next) => {
   // ctx.set('Access-Control-Allow-Origin', '*')
+  console.log(ctx.header)
   const users = [
     {
       name: 'ice',

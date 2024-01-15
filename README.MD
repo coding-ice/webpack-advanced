@@ -597,3 +597,17 @@ flowchart LR
 前端 --> proxy --> 后端api
 后端api --> proxy --> 前端
 ```
+#### changeOrigin
+改变`host`的来源,有些服务器会根据`host`来源来判断，如果不是同一个host访问就给他屏蔽掉，防止爬虫。  
+在`koa`服务器中，我们打印出它的`header`,就会发现请求的`origin`地址，也就是我们的前端地址`8080`。如果想要改变它的源，配置如下就可以解决
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7f409fb9299a47ea9884f03634491e3e~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1242&h=704&s=128609&e=png&b=292c33)
+```js
+proxy: {
+  '/api': {
+    // ...
+    changeOrigin: true,
+  },
+},
+```
+因为正常情况下，我服务器在`3000`端口下，那么请求的`host`也应该在`3000`,这个最主要看后端是否有限制
