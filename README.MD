@@ -18,7 +18,7 @@ pnpm i webpack webpack-cli -D
   "build": "webpack",
 },
 ```
-`scripts`脚本，本质上就只在`.bin`文件夹下寻找webpack, 即`npm run build`等同于`npx webpack`，默认会去存在`package.json`(即根目录查找配置文件`webpack.config.js`) ，它的`filename`可以更改,`--config filename`即可  
+`scripts`脚本，本质上就只在`.bin`文件夹下寻找webpack, 即`npm run build`等同于`npx webpack`，默认会去存在`package.json`(即根目录查找配置文件`webpack.config.js`) ，它的`filename`可以更改,`--config filename`即可。**只要修改了配置文件，就需要重启服务** 
 **目录结构**
 ```
 ├── README.MD
@@ -611,3 +611,14 @@ proxy: {
 },
 ```
 因为正常情况下，我服务器在`3000`端口下，那么请求的`host`也应该在`3000`,这个最主要看后端是否有限制
+
+### historyApiFallback
+前端路由，都是一个`url -> components`，我们会在`url`上增加前端路由，然后渲染对应的组件，但是在浏览器中则会代表请求对应的资源，一般为`index.html`文件，刷新网页就会报一个`404`找不到文件的错误
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/340837c52fa04b11a3ececbbd25f0c30~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1124&h=512&s=82187&e=png&b=fefefe)  
+那么我们如何解决呢？我们刷新网页的时候在给它重定下`index.html`文件即可
+```js
+devServer: {
+  historyApiFallback: true,
+},
+```
