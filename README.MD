@@ -622,3 +622,77 @@ devServer: {
   historyApiFallback: true,
 },
 ```
+## 多入口起点
+本节代码见：`5.entry_points`  
+我们前面就配置了`entry`，指向的`main.js`，当执行`build`,`webpack`就会从它出发，把有关联的代码形成一个依赖图（图结构），打包构建，而之前的`mode`中，我们只配置了单入口，其实是可以设置多入口起点的，不过日常使用的较少（`vite/create react app`都是单入口），我们了解即可  
+### 创建文件
+```js
+// src/stu.js
+console.log('stu')
+
+// src/teacher.js
+console.log('teacher')
+```
+此时，我们的`src`文件中，有两个文件，它们彼此并没有依赖，我们设置给他们两个都设置为入口文件
+```js
+// webpack.config.js
+module.exports = {
+  // ...
+  entry: {
+    stu: './src/stu.js',
+    teacher: './src/teacher.js',
+  },
+  output: {
+    filename: 'bundle.js',
+    path: resolve(__dirname, 'build'),
+  },
+}
+```
+### 文件打包
+`entry`为对象的写法，我们可以配置多个入口，此时我们执行`build`，会发现如下错误，有多个`chunk`名字相同产生了冲突，它不知道如何打包了，其实学到这里，大家肯定知道应该要设置`output`（即出口配置）
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6ce7d2593d534409819e2b42b5a6723b~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1490&h=642&s=174555&e=png&b=282c34)
+```js
+output: {
+  filename: '[name]_bundle.js',
+  path: resolve(__dirname, 'build'),
+},
+```
+现在执行`build`就可以发现打包成功了，其中`[name]`写法为`placeholder`（占位符语法）
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/fba31ac327b74a4986a3e171a3653866~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=380&h=220&s=18887&e=png&b=23272d)
+
+### 依赖共享
+如下图所示，我们在日常开发中，会有一些包会在很多文件中使用，比如`dayjs`在`stu teacher`文件中均有用到
+```js
+// src/stu.js
+import dayjs from 'dayjs'
+
+console.log('stu')
+console.log(dayjs().format('YYYY-MM-DD HH:mm:ss'))
+
+// src/teacher.js
+import dayjs from 'dayjs'
+
+console.log('teacher')
+console.log(dayjs().format('YYYY-MM-DD HH:mm:ss'))
+
+```
+然后我们进行`build`观察如下产物，会发现`dayjs`竟然会被打包两次（即`第10行`）
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a8c71fead29b49cfbf8b8c1ed7969a5d~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2920&h=1064&s=332955&e=png&b=2a2e36)
+那么我们针对如上的场景如何优化呢？能不能把`库`文件单独打包到一个文件里面，然后让这两个文件应用这两个包呢？
+```js
+entry: {
+  stu: {
+    import: './src/stu.js',
+    dependOn: 'shared',
+  },
+  teacher: {
+    import: './src/teacher.js',
+    dependOn: 'shared',
+  },
+  shared: ['dayjs'],
+},
+```
+我们在另外增加一个入口，让`stu & teacher`去引入这个需要共享的第三方包，这样就可以实现，我们再次观察产物,就可以看见实现了对`shared`包进行了引入
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/dc200bd9192d4d1e8b0304ef736e15fc~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2936&h=1614&s=596453&e=png&b=282c34)
