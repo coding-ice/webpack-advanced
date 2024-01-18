@@ -696,3 +696,50 @@ entry: {
 ```
 我们在另外增加一个入口，让`stu & teacher`去引入这个需要共享的第三方包，这样就可以实现，我们再次观察产物,就可以看见实现了对`shared`包进行了引入
 ![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/dc200bd9192d4d1e8b0304ef736e15fc~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2936&h=1614&s=596453&e=png&b=282c34)
+
+## 动态导入
+本节代码见：`6.dynamic_import`  
+其实动态导入大家应该都用过，就是路由懒加载。Vue中利用`import`函数导入组件或者`React`中的`React.lazy`的函数引入的组件。何为路由懒加载？最主要的就是映射关系， `path: component`,有`history/hash`两种模式，监听路由的变化，动态加载`component`  
+那么当浏览器首次渲染的时候，只需要下载对应`js`文件即可（不需要全部下载），有利于提高首屏渲染速度。当浏览器闲置的时候下载，或者使用到的时候在下载即可（路由变化）
+### 基本用法
+```js
+// main.js
+const btnEl1 = document.createElement('button')
+const btnEl2 = document.createElement('button')
+
+btnEl1.textContent = '加载stu'
+btnEl1.addEventListener('click', () => {
+  import('./stu').then((res) => {
+    console.log(res)
+  })
+})
+
+btnEl2.textContent = '加载tea'
+btnEl2.addEventListener('click', () => {
+  import('./teacher').then((res) => {
+    console.log(res)
+  })
+})
+
+document.body.append(btnEl1, btnEl2)
+```
+当我们执行`build`的时候，就会发现`stu`和`tea`是打成单独的包的，通过某种行为，动态的加载
+
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a1be47f6d4864c2f8980aa4e11a81254~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=456&h=258&s=24736&e=png&b=23272d)  
+当我们开启一个本地服务，首次加载的只有`bundle.js`
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c51cb25aac4345a5ac3bb09ccae6eff7~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1608&h=632&s=107876&e=png&b=303030)  
+当我点击按钮，触发了某种行为的时候，才会加载动态导入的文件
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/21715742bb974b3abf6a624def08a656~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1842&h=530&s=110649&e=png&b=fcfcfc)
+### 魔法注释
+我们前面进行了动态导入，但是仔细看它的名字`src_stu_js.bundle`,是根据它的目录+filename生成的，但是实际`cli`中，都会是对应的页面名称，此时我们就需要用到魔法注释了
+```js
+btnEl2.addEventListener('click', () => {
+  import(/* webpackChunkName: 'teacher' */'./teacher').then((res) => {
+    console.log(res)
+  })
+})
+```
+此时，我们就可以发现名称已经改掉了
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/63e0e75dfb3542d2ac095cc8c74746a3~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1882&h=424&s=101681&e=png&b=272b33)

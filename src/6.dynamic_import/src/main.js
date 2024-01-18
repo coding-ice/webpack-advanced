@@ -10,7 +10,7 @@ btnEl1.addEventListener('click', () => {
 
 btnEl2.textContent = '加载tea'
 btnEl2.addEventListener('click', () => {
-  import('./teacher').then((res) => {
+  import(/* webpackChunkName: 'teacher' */'./teacher').then((res) => {
     console.log(res)
   })
 })
