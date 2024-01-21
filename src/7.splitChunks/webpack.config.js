@@ -8,6 +8,24 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: resolve(__dirname, 'build'),
+    clean: true,
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      minSize: 1 * 1024,
+      cacheGroups: {
+        vendors: {
+          test: /node_modules/,
+          filename: 'vendors.bundle.js',
+        },
+        utils: {
+          test: /utils/,
+          filename: 'utils.js',
+          minSize: 1
+        }
+      },
+    },
   },
   plugins: [
     new htmlWebpackPlugin({

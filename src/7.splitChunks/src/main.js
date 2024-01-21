@@ -1,18 +1,6 @@
-const btnEl1 = document.createElement('button')
-const btnEl2 = document.createElement('button')
+import dayjs from 'dayjs'
+import { sum } from './utils/sum'
 
-btnEl1.textContent = '加载stu'
-btnEl1.addEventListener('click', () => {
-  import('./stu').then((res) => {
-    console.log(res)
-  })
-})
-
-btnEl2.textContent = '加载tea'
-btnEl2.addEventListener('click', () => {
-  import(/* webpackChunkName: 'teacher' */'./teacher').then((res) => {
-    console.log(res)
-  })
-})
-
-document.body.append(btnEl1, btnEl2)
+console.log(dayjs('YYYY-MM-DD HH:mm:ss'))
+console.log('ice')
+console.log(sum(29, 30))
