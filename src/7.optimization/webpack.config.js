@@ -2,26 +2,27 @@ const { resolve } = require('path')
 const htmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   devtool: false,
   entry: './src/main.js',
   output: {
-    filename: 'bundle.js',
+    // filename: '[name]_bundle.js',
     path: resolve(__dirname, 'build'),
     clean: true,
   },
   optimization: {
+    chunkIds: 'deterministic',
     splitChunks: {
       chunks: 'all',
-      minSize: 1 * 1024,
+      minSize: 1 * 100,
       cacheGroups: {
         vendors: {
           test: /node_modules/,
-          filename: 'vendors.bundle.js',
+          // filename: '[id]_vendors.bundle.js',
         },
         utils: {
           test: /utils/,
-          filename: 'utils.js',
+          filename: '[id]_utils.js',
           minSize: 1
         }
       },
