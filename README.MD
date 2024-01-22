@@ -743,3 +743,53 @@ btnEl2.addEventListener('click', () => {
 ```
 此时，我们就可以发现名称已经改掉了
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/63e0e75dfb3542d2ac095cc8c74746a3~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1882&h=424&s=101681&e=png&b=272b33)
+
+## optimization
+本节代码见：`7.optimization`
+### splitChunks
+在我们实际构建的产物，往往第三方包(即`vendors`)和我们自己编写的代码都是分开打包的，一般会构建为两个文件
+```js
+// main.js
+import dayjs from 'dayjs'
+
+console.log(dayjs('YYYY-MM-DD HH:mm:ss'))
+console.log('ice')
+
+```
+这是我们不处理构建的产物，无论是第三方库，还是我们编写的代码都在`bundle.js`文件，现在看起来无伤大雅，但是依赖多了，随着`bundle`文件越来越大，那么意味着下载的也慢，首屏渲染速度也会下降。所以，我们才要把他们分开存放
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/83cb9a83ff4f48388e3daf6b975d66bf~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=310&h=172&s=12712&e=png&b=262a31)
+
+我们走读一下配置，其中`all`代表，可在同步与异步（异步：动态导入）之间共享`chunk`,`minSize`代表生成`chunk`的最小体积，如果比这个`1kb`还小的话，就直接不分开打包，
+`defaultVendors`设置产物的名称
+```js
+//webpack.config.js
+const { resolve } = require('path')
+const htmlWebpackPlugin = require('html-webpack-plugin')
+
+module.exports = {
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      minSize: 1 * 1024,
+      // 自定义分包
+      cacheGroups: {
+        vendors: {
+          test: /[\\/]node_modules[\\/]/,
+          filename: 'vendors.bundle.js',
+        },
+      },
+    },
+  },
+}
+```
+接下来我们来查看下产物，我们编写的代码，在`bundle.js`中，而第三方的在`vendors`中
+
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/b8066221080a4c24984d40f1b23489ef~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=632&h=216&s=19158&e=png&b=252930)
+
+### chunkIds
+当我们不设置`output`输出的文件名且在`development`模式下，那么它将使用绝对路径进行命名，如下图所示
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c3d277c666eb49afa5ddb5e5f9e889d5~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2176&h=1458&s=331826&e=png&b=272a31)
+但是它的文件名生成算法大有来头，配置即`chunkIds`,`dev`环境采用的是`named`,而`prod`的阶段采用的是`deterministic`（在不同的编译中不变的短数`id`。有益于长期缓存。在生产模式中会默认开启。）  
+编译结果如下图所示：  
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/82188f26b4274f2eb44a2d72f0ba807a~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=428&h=302&s=23534&e=png&b=22252c)
