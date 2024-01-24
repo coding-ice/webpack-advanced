@@ -7,6 +7,7 @@ module.exports = {
   entry: './src/main.js',
   output: {
     // filename: '[name]_bundle.js',
+    publicPath: 'https://cdn.com',
     path: resolve(__dirname, 'build'),
     clean: true,
   },
