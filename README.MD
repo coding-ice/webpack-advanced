@@ -819,10 +819,25 @@ module.exports = {
 // webpack.config.js
 module.exports = {
   output: {
-    publicPath: 'https://cdn.com',
+    publicPath: 'https://cdn.com', // 示例地址
   },
 }
 ```
 构建打包效果如下：
 
 ![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cfb94ea549b843e98d77458accf908f4~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1204&h=456&s=93625&e=png&b=282c34)
+
+### 打包第三方库
+对于`CDN`服务器来说，往往比普通的服务器更贵，小型公司选择性的可能性不大，而对于那种第三包库而说都会有开源的`CDN`平台，[bootcdn](https://www.bootcdn.cn/)，众多知名的库都会托管在这里。
+比如，我们想要`dayjs`使用CDN进行加速，而不是打包在我们的源代码中  
+**首先进行排除**，externals中`key:value`代表不同的意义，`key`是引入包的名字（`from x`）,而`value`是`cdn`库的链接导出的名字
+```js
+// webpack.config.js
+module.exports = {
+  externals: {
+    dayjs: 'dayjs',
+  },
+}
+```
+在html模版中引入即可
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/731fa9ecc7c44a709d430efde5544db5~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1374&h=356&s=67580&e=png&b=292c33)

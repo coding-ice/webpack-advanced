@@ -7,7 +7,7 @@ module.exports = {
   entry: './src/main.js',
   output: {
     // filename: '[name]_bundle.js',
-    publicPath: 'https://cdn.com',
+    // publicPath: 'https://cdn.com',
     path: resolve(__dirname, 'build'),
     clean: true,
   },
@@ -24,10 +24,13 @@ module.exports = {
         utils: {
           test: /utils/,
           filename: '[id]_utils.js',
-          minSize: 1
-        }
+          minSize: 1,
+        },
       },
     },
+  },
+  externals: {
+    dayjs: 'dayjs',
   },
   plugins: [
     new htmlWebpackPlugin({
