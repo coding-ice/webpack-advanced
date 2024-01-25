@@ -807,3 +807,22 @@ module.exports = {
 但是它的文件名生成算法大有来头，配置即`chunkIds`,`dev`环境采用的是`named`,而`prod`的阶段采用的是`deterministic`（在不同的编译中不变的短数`id`。有益于长期缓存。在生产模式中会默认开启。）  
 编译结果如下图所示：  
 ![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/82188f26b4274f2eb44a2d72f0ba807a~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=428&h=302&s=23534&e=png&b=22252c)
+
+
+## CDN
+**本节代码见：`8.cdn`**  
+我们构建的产物，最后是要被部署到服务器上的，但是对于这种物理设备会存在地域的限制，往往服务器离用户近的越近的，相对来说访问的速度越快，所以才有了CDN，把静态资源部署到CDN服务器上，也是性能优化的策略之一  
+一般把`index.html`直接部署到服务器上，而那些资源`js/css`等，应该存放在CDN上，选择也还是存在于服务器上，那么怎么修改呢？
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/dfe237d0f9cb4e6080cfe90c1f6724c5~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1238&h=488&s=85077&e=png&b=282c34)
+### publicPath
+```js
+// webpack.config.js
+module.exports = {
+  output: {
+    publicPath: 'https://cdn.com',
+  },
+}
+```
+构建打包效果如下：
+
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cfb94ea549b843e98d77458accf908f4~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1204&h=456&s=93625&e=png&b=282c34)
