@@ -1,2 +1,2 @@
 import './style.css'
-console.log('ice xxx')
+console.log('ice')

@@ -3,7 +3,7 @@ const htmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
   devtool: false,
   entry: './src/main.js',
   output: {
@@ -12,14 +12,14 @@ module.exports = {
     clean: true,
   },
   module: {
-    rules: [{ test: /\.css$/, use: [MiniCssExtractPlugin.loader, 'css-loader'] }],
+    rules: [{ test: /\.css$/, use: ['style-loader', 'css-loader'] }],
   },
   plugins: [
     new htmlWebpackPlugin({
       template: './index.html',
     }),
-    new MiniCssExtractPlugin({
-      filename: 'css/[name]_[hash:6].css',
-    }),
+    // new MiniCssExtractPlugin({
+    //   filename: 'css/[name]_[hash:6].css',
+    // }),
   ],
 }
