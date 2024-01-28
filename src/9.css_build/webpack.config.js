@@ -18,8 +18,8 @@ module.exports = {
     new htmlWebpackPlugin({
       template: './index.html',
     }),
-    // new MiniCssExtractPlugin({
-    //   filename: 'css/[name]_[hash:6].css',
-    // }),
+    new MiniCssExtractPlugin({
+      filename: 'css/[name]_[hash:6].css',
+    }),
   ],
 }
