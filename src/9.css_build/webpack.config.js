@@ -7,7 +7,7 @@ module.exports = {
   devtool: false,
   entry: './src/main.js',
   output: {
-    filename: 'js/[name]_bundle.js',
+    filename: 'js/[hash:6]_bundle.js',
     path: resolve(__dirname, 'build'),
     clean: true,
   },
