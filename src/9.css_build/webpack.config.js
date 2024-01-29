@@ -12,7 +12,7 @@ module.exports = {
     clean: true,
   },
   module: {
-    rules: [{ test: /\.css$/, use: ['style-loader', 'css-loader'] }],
+    rules: [{ test: /\.css$/, use: [MiniCssExtractPlugin.loader, 'css-loader'] }],
   },
   plugins: [
     new htmlWebpackPlugin({

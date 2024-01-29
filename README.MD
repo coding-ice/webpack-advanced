@@ -841,3 +841,54 @@ module.exports = {
 ```
 在html模版中引入即可
 ![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/731fa9ecc7c44a709d430efde5544db5~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1374&h=356&s=67580&e=png&b=292c33)
+
+## CSS单独打包
+我们知道，从浏览器的渲染原理可以得知`css`是可以并行加载的，不会阻塞后面代码的执行，`dom+css`解析完成形成一个`render tree`在经过`layout paint`最后显示到浏览器上，而在不配置`css`单独打包，会打包到`js`代码里，会增加`js`包的大小，影响首屏渲染的速度
+### 默认
+```js
+// webpack.config.js
+module: {
+  rules: [{ test: /\.css$/, use: ['style-loader', 'css-loader'] }],
+},
+```
+```css
+/* style.css */
+body {
+  background: skyblue;
+}
+```
+```js
+// main.js
+import './style.css'
+console.log('ice')
+```
+我们执行`build`，会发现`css`代码是打包到`js`代码当中的，通过`style-loader`把`css`插入到`head`当中
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/28ad0d1e434941459d59ccf464a974d6~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=3840&h=2160&s=923787&e=png&b=282b32)
+
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/cb8f3e70ed3a4a86bc419eb8d867824e~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1104&h=460&s=128310&e=png&b=fefefe)
+### 单独打包
+```shell
+pnpm i mini-css-extract-plugin -D
+```
+
+```js
+// webpack.config.js
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+
+module.exports = {
+  module: {
+    rules: [{ test: /\.css$/, use: [MiniCssExtractPlugin.loader, 'css-loader'] }],
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: 'css/[name]_[hash:6].css',
+    }),
+  ],
+}
+```
+使用`mini-css-extract-plugin`提取`css`，把`css`提取成单个文件，我们执行`build`在观察产物，资源就被我们提取出来了
+
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/9f15f5c9a40245dfbd8a4425eee4fc9d~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=288&h=174&s=9004&e=png&b=262931)
+
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d79cd9e274f942df8edc25b01903cbb6~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1034&h=362&s=66473&e=png&b=fefefe)
