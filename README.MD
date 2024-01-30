@@ -892,3 +892,68 @@ module.exports = {
 ![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/9f15f5c9a40245dfbd8a4425eee4fc9d~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=288&h=174&s=9004&e=png&b=262931)
 
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d79cd9e274f942df8edc25b01903cbb6~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1034&h=362&s=66473&e=png&b=fefefe)
+
+## Terser
+**本节代码见：`10.terser`**  
+terser工具，在`mode`为`prod`环境的时候，会自动应用。那它是什么呢？它用于丑化`js`代码，什么是丑化呢？我们平常使用的第三方库都会有以`min.js`结尾的就是丑化之后的代码。而它由`mangler and compressor`两部分组成  
+比如:`dayjs.min.js`，如下图所示
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f428a0f286ce4f5aa48ea903bff7d59b~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=3016&h=1308&s=1081680&e=png&b=131313)
+那为什么需要把它丑化呢？对于我们开发的时候，我们都需要做到“见名知意”，但是对于用户来说，**它无需关系变量名，存不存在换行等**，因为这样可以大大减少代码的体积，更快的在`http`中进行传输，更快的传输给用户，加载首评渲染速度等一系列好处。
+
+### CLI中使用
+**本节代码见：`1.CLI`**
+
+```shell
+pnpm i terser -D
+```
+```js
+// main.js
+const sum = (n1, n2) => n1 + n2
+
+function bar() {
+  console.log('bar')
+}
+```
+```js
+// package.json
+"scripts": {
+  "build": "terser main.js -o mini.min.js -m --toplevel",
+}
+```
+我们简单走读一下配置  
+1. `terser main.js` 编译该文件  
+2. `-o` 输出为`mini.min.js`
+3. `-m` mangle（乱砍）把变量名砍断,变量名简写`即getUserName ->缩短为一个字符 x`
+4. `--toplevel` 顶层作用域的名称进行 压缩/砍断  
+[...更多配置   ](https://terser.org/docs/cli-usage/)  
+
+我们执行`npm run build`,观察一下产物信息，发现代码就被我丑化了
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c201af9c5b224a8792afaae47378e809~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1300&h=74&s=19034&e=png&b=2a2e37)
+
+### webpack中使用
+**本节代码见：`2.webpack`**  
+前面我们有说到过，当我们模式为`prod`的时候，会自动使用`terser-webpack-plugin`这个插件，而我们可以进行自定义，一般我们使用默认即可，我们首先来看下`prod`模式下，打包后的产物，它是正常进行压缩的
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d24b4c45c62d4c25853ad926a704dc35~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=2218&h=158&s=32135&e=png&b=292d35)
+接下来，我们来设置一些配置，对它了解的更加深刻
+```js
+// webpack.config.js
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new terserWebpackPlugin({
+        extractComments: false, // 提取注释
+        terserOptions: {
+          mangle: true, // 字母缩写
+          compress: {
+            // 未使用的不打包
+            unused: false,
+          },
+        },
+      }),
+    ],
+  },
+```
+1. `minimize` 使用`minimizer`自定义的`terser`或者默认的`TerserWebpackPlugin`
+2. `extractComments` 是否把注释提取为单独的文件
+3. `mangle` 字母缩写
+4. `unused` 未使用的包，不打包
