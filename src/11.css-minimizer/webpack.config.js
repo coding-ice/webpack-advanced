@@ -1,13 +1,14 @@
 const { resolve } = require('path')
 const htmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   devtool: false,
   entry: './src/main.js',
   output: {
-    filename: 'js/[hash:6]_bundle.js',
+    filename: 'js/[contenthash:6]_bundle.js',
     path: resolve(__dirname, 'build'),
     clean: true,
   },
@@ -22,4 +23,7 @@ module.exports = {
       filename: 'css/[name]_[hash:6].css',
     }),
   ],
+  optimization: {
+    minimizer: [new CssMinimizerPlugin()],
+  },
 }
