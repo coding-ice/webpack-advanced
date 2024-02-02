@@ -891,6 +891,7 @@ module.exports = {
 
 ![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/9f15f5c9a40245dfbd8a4425eee4fc9d~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=288&h=174&s=9004&e=png&b=262931)
 
+
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d79cd9e274f942df8edc25b01903cbb6~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1034&h=362&s=66473&e=png&b=fefefe)
 
 ## Terser
@@ -957,3 +958,6 @@ function bar() {
 2. `extractComments` 是否把注释提取为单独的文件
 3. `mangle` 字母缩写
 4. `unused` 未使用的包，不打包
+
+## css-minimizer
+**本节代码见：`11.css-minimizer`**
