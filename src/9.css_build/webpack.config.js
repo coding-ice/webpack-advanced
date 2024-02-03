@@ -1,6 +1,7 @@
 const { resolve } = require('path')
 const htmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
 module.exports = {
   mode: 'development',
@@ -22,4 +23,8 @@ module.exports = {
       filename: 'css/[name]_[hash:6].css',
     }),
   ],
+  optimization: {
+    minimize: true,
+    minimizer: [new CssMinimizerPlugin()],
+  },
 }
