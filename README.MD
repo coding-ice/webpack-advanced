@@ -893,6 +893,25 @@ module.exports = {
 
 
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d79cd9e274f942df8edc25b01903cbb6~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1034&h=362&s=66473&e=png&b=fefefe)
+### 丑化Css
+**不使用丑化**，对于一些换行符，空格之类的它实际会占代码体积的，我们可以把它进行丑化，删除一些无用的空格和换行
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/525d703ad34d4ad7a9e084f83521e2b7~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1718&h=418&s=61883&e=png&b=2a2e36)
+**使用之后**
+```js
+// webpack.config.js
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+
+module.exports = {
+  mode: 'development',
+  optimization: {
+    minimize: true,
+    minimizer: [new CssMinimizerPlugin()],
+  },
+}
+```
+
+我们就可以清晰的看见`css`被丑化了，`minimize`代表启动`minimizer`,而在`prod`模式下，默认为`true`
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4e7ee9ecaf7d41e5bcba3b4d29ed5842~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1700&h=166&s=34264&e=png&b=2a2e37)
 
 ## Terser
 **本节代码见：`10.terser`**  
@@ -900,7 +919,6 @@ terser工具，在`mode`为`prod`环境的时候，会自动应用。那它是�
 比如:`dayjs.min.js`，如下图所示
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f428a0f286ce4f5aa48ea903bff7d59b~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=3016&h=1308&s=1081680&e=png&b=131313)
 那为什么需要把它丑化呢？对于我们开发的时候，我们都需要做到“见名知意”，但是对于用户来说，**它无需关系变量名，存不存在换行等**，因为这样可以大大减少代码的体积，更快的在`http`中进行传输，更快的传输给用户，加载首评渲染速度等一系列好处。
-
 ### CLI中使用
 **本节代码见：`1.CLI`**
 
@@ -959,5 +977,182 @@ function bar() {
 3. `mangle` 字母缩写
 4. `unused` 未使用的包，不打包
 
-## css-minimizer
-**本节代码见：`11.css-minimizer`**
+## webpack的配置抽取
+**本节代码见:**`11.webpack_merge_config`  
+至今为止，我们已经学了很多的配置项了，但是我们的模式是混乱的，有些应该存在于`prod`环境下，而有的应该在`dev`模式下，现在我们就进行抽取
+
+### 前置知识
+我们要区分`mode`,首先我们要让`webpack.config.js`中，知道我们执行`build`处于`prod`模式，而`start`处于`dev`模式下
+```js
+// package.json
+{
+  "scripts": {
+    "start": "webpack server --config ./config/index.config.js --env development",
+    "build": "webpack --config ./config/index.config.js --env production"
+  },
+}
+```
+我们执行对应的命令，`--env`传入现处的模式，那我们在哪里接受呢？其实我们写的`webpack.config.js`不仅可以接受一个对象，还可以接受一个函数，`webpack`就会执行这个函数，并把`env`的环境传递给我们
+```js
+module.exports = function (env) {
+// const isProd = env.production
+}
+```
+
+### 核心思路
+1. 执行`start/build`区分对应的环境
+2. 把文件分离出来,把对应的配置写到对应的`mode`下
+    - index.config.js
+    - dev.config.js
+    - prod.config.js
+3. 利用`webpack-merge`进行组合
+
+**源代码**
+``` js
+// index.config.js
+const { resolve } = require('path')
+const { merge } = require('webpack-merge')
+const htmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+
+const prodWebpackConfig = require('./prod.config')
+const devWebpackConfig = require('./dev.config')
+
+const getCommonConfig = (isProd) => {
+  return {
+    entry: './src/main.js',
+    output: {
+      filename: 'js/[hash:6]_bundle.js',
+      path: resolve(__dirname, '../build'),
+      clean: true,
+    },
+    module: {
+      rules: [{ test: /\.css$/, use: [isProd ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader'] }],
+    },
+    plugins: [
+      new htmlWebpackPlugin({
+        template: './index.html',
+      }),
+    ],
+  }
+}
+
+module.exports = function (env) {
+  const isProd = env.production
+  const config = isProd ? prodWebpackConfig : devWebpackConfig
+
+  return merge(getCommonConfig(isProd), config)
+}
+
+// dev.config.js
+module.exports = {
+  mode: 'development',
+  devServer: {
+    open: true,
+    port: 3000,
+    compress: true,
+    static: ['public', 'abc'],
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        pathRewrite: {
+          '^/api': '',
+        },
+        changeOrigin: true,
+      },
+    },
+    historyApiFallback: true,
+  },
+}
+
+// prod.config.js
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+const TerserWebpackPlugin = require('terser-webpack-plugin')
+
+module.exports = {
+  mode: 'production',
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: 'css/[name]_[hash:6].css',
+    }),
+  ],
+  optimization: {
+    minimizer: [new CssMinimizerPlugin(), new TerserWebpackPlugin()],
+  },
+}
+```
+
+## Tree Shaking
+**本节代码见：`12.tree_shaking`**  
+“摇树”，把代码中的`dead code`不打包在产物中，我们前面说到的`terser`可以实现部分`tree shaking`的效果，即顶层作用域中没使用到的"函数"，变量等。为了实现演示效果，我们把`prod.config.js`的`mode`改为`dev`模式，避免应用了一些插件影响我们。`tree shaking`依赖于`ES Module`的静态语法分析,要使用`ES Module`进行导出 
+### usedExports
+如下图所示，我们其中的`sum&info`都是没有使用过的
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/356806c964b74315bc5aa5188c2e553a~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=942&h=236&s=26985&e=png&b=292e36)
+当我们没有使用`terser`,就会发现，我们构建的产物中，还会存在`dead code`这些死的代码，这样会增加代码的体积
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3577b57c00354237b746a777eef5d191~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1700&h=612&s=113532&e=png&b=2a2e36)
+当我们使用`terser`就会把没使用过的代码（即顶层作用域）去除，为什么说是顶层呢？模块就不可以吗?
+```js
+// service/getUserName.js
+function getUserName() {
+  return 'ice'
+}
+export default getUserName
+
+// main.js
+import './style.css'
+import { getUserName } from './service/getUserName'
+
+const sum = (a, b) => a + b
+const info = { name: 'ice', age: 24 }
+```
+我们执行`build`观察产物，会发现**并没有被删除掉**，是因为`terser`并不知道这个模块有没有被使用，需要结合`usedExports`
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/50d40697c68640518c967b2a5a9fe024~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1788&h=992&s=212842&e=png&b=292d35)
+**usedExports做了什么事情？**  
+首先我们为了查看效果，先不要使用`terser`，避免干扰到我们,`build`观察一下产物
+![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0fcd5e8313b74eb9937ff6b1173e2c88~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1692&h=984&s=181364&e=png&b=292d35)
+```js
+optimization: {
+  usedExports: true,
+},
+```
+应用`usedExports`后，我们在进行`build`,就会多了一行魔法注释,在结合`terser`,`terser`就可以大胆的将这个模块移除了
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/815f8a429b454455812ba5dfcc5b530b~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1750&h=982&s=191715&e=png&b=292d35)
+我们放开`terser`再次`build`导出却没有使用的代码就被移除了
+![image.png](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/edb5eebc1bfa414cb4514bb48c24cf4b~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1098&h=504&s=88290&e=png&b=2a2e36)
+
+### sideEffects
+它会跳过整个模块/文件，直接查看该文件是否有副作用
+```js
+// package.json
+"sideEffects": false,
+```
+
+```js
+import './style.css'
+import { getUserName } from './service/getUserName'
+
+const sum = (a, b) => a + b
+const info = { name: 'ice', age: 24 }
+
+console.log(sum, info)
+```
+```js
+function getUserName() {
+  return 'ice'
+}
+// 增加副作用代码
+window.info = {
+  name: getUserName(),
+  age: 20,
+}
+
+export default getUserName
+```
+如果为`sideEffects`为不保留副作用代码，那么没有使用到的代码模块（文件）将直接被删除，但是这些副作用代码有可能会被用到，那么代码就会报错  
+`style.css`也不会被打包
+```js
+// package.json
+  "sideEffects": ["*.css", "getUserName.js"],
+```
+把需要保留的`副作用`模块，写入到数组中即可
