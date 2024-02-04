@@ -1156,3 +1156,41 @@ export default getUserName
   "sideEffects": ["*.css", "getUserName.js"],
 ```
 把需要保留的`副作用`模块，写入到数组中即可
+
+## **Scope Hoisting**
+**概念**  
+早期webpack中模块都会被包裹在单独的函数闭包中，这些包裹的函数使`js`在浏览器中执行速度变慢，相比像`rollupjs`就会把所有的模块作用域“提升”合并到一个闭包中，这就称之为“作用域提升”  
+前面我们有提到，当`mode`为生产环境的时候默认，会给我们默认使用许多“优化手段”，提升作用域也是应用的一个`plugin`,我们改为`dev`来测试一下这个plugin（即`ModuleConcatenationPlugin`）
+
+### 不使用
+```js
+// sub.js
+const sub = (a, b) => a - b
+export default sub
+
+// sum.js
+const sum = (a, b) => a + b
+export default sum
+```
+
+```js
+import sub from './utils/sub'
+import sum from './utils/sum'
+
+console.log(sub(10, 5))
+console.log(sum(10, 5))
+```
+我们观察一下构建的产物，可以非常的清晰看见他们是存在一个单独的作用域中,这样浏览器执行的速度变慢
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e977b034650d4b99a78e0084f7750705~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1992&h=1224&s=254354&e=png&b=292d35)
+
+### 使用
+```js
+// webpack.config.js
+plugins: [
+  new webpack.optimize.ModuleConcatenationPlugin(),
+],
+```
+我们进行`build`再次观察产物，就会发现他们的作用域被“提升”了，或者说被合并了，处于同一个作用域（即IIFE，立即执行函数）
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d6a79a59fd0d422b9175871415af5e8a~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1960&h=802&s=158775&e=png&b=292d35)
