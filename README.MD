@@ -1158,6 +1158,7 @@ export default getUserName
 把需要保留的`副作用`模块，写入到数组中即可
 
 ## **Scope Hoisting**
+**本节代码见：`13.scope_hoisting`**  
 **概念**  
 早期webpack中模块都会被包裹在单独的函数闭包中，这些包裹的函数使`js`在浏览器中执行速度变慢，相比像`rollupjs`就会把所有的模块作用域“提升”合并到一个闭包中，这就称之为“作用域提升”  
 前面我们有提到，当`mode`为生产环境的时候默认，会给我们默认使用许多“优化手段”，提升作用域也是应用的一个`plugin`,我们改为`dev`来测试一下这个plugin（即`ModuleConcatenationPlugin`）
@@ -1194,3 +1195,53 @@ plugins: [
 我们进行`build`再次观察产物，就会发现他们的作用域被“提升”了，或者说被合并了，处于同一个作用域（即IIFE，立即执行函数）
 
 ![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/d6a79a59fd0d422b9175871415af5e8a~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1960&h=802&s=158775&e=png&b=292d35)
+
+## CompressionPlugin
+**本节代码见：`14.gzip`**  
+前面我们说到了`terser`,它可以把源代码进行丑化，但是这种“丑化”已经达到了压缩的最大程度。基本上不能再从源代码上优化，但是`gzip`格式可以很大程度的减少源文件的大小，可以更快的在网络上传输，加快首屏渲染速度，而在`webpack`的`mode`为`prod`的模式下并没有应用这个插件，这是性能优化的手段之一  
+客户端和服务端达成了共识，当遇到`gzip`文件，就自动进行解压
+```js
+// webpack.config.js
+plugins: [
+  new CompressionPlugin({
+    test: /\.(css|js)$/,
+    minRatio: 0.8,
+    algorithm: "gzip"
+  })
+]
+```
+简单走读一下配置
+- `test` 匹配以`.css .js`结尾的
+- 最小压缩比例要达到 `0.8`这个也是默认值
+
+我们进行`build`,观察一下结果,就会发现打包之后的产物多了`.gz`文件
+
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/a1bf0b00e2bd48ca968b62d4e99d6820~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=910&h=388&s=37160&e=png&b=23272d)
+
+## SpeedMeasureWebpackPlugin
+**本节代码见：`15.speed_measure`**  
+这个插件主要作用于测量构建速度的，可以根据测量，来优化我们的构建速度
+```js
+// before
+const webpackConfig = {
+  plugins: [new MyPlugin(), new MyOtherPlugin()],
+};
+```
+
+```js
+// after
+const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
+
+const smp = new SpeedMeasurePlugin();
+
+const webpackConfig = smp.wrap({
+  plugins: [new MyPlugin(), new MyOtherPlugin()],
+});
+```
+效果如下：
+
+![image.png](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5af4702f6f834b3d96130814ad78025d~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=1004&h=722&s=134170&e=png&b=282c34)
+比如我们看`babel-loader`的消耗时间较长，就可以使用一些优化手段，`exclude`排除一些第三方的库，库一般都会进行向下兼容，不需要使用`babel`
+```js
+{ test: /\.js$/, use: 'babel-loader', exclude: /node_modules/ }
+```
