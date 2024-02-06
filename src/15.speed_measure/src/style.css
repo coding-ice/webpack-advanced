@@ -1,0 +1,17 @@
+body {
+  background: skyblue;
+}
+div {
+  width: 100px;
+  height: 100px;
+  background: pink;
+}
+pre {    
+  margin-top: 0;
+  margin-bottom: 24px;
+  padding: 12px;
+  font-size: 1em;
+  background: #f7f7f7;
+  border-radius: 2px;
+  overflow-x: auto;
+}
