@@ -1245,3 +1245,15 @@ const webpackConfig = smp.wrap({
 ```js
 { test: /\.js$/, use: 'babel-loader', exclude: /node_modules/ }
 ```
+
+## BundleAnalyzer
+对我们构建的**产物**进行分析，可以分析包的大小，比如`dayjs`包，如果占用项目大小较大，我们就可以考虑自己封装一个，从而减少包的代码体积
+```js
+// webpack.config.js
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+
+plugins: [
+  new BundleAnalyzerPlugin(),
+],
+```
+![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5b0cf577413b4cd7b98345b370ec7270~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=3024&h=1648&s=2113234&e=png&b=99e1c9)
