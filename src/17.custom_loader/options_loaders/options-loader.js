@@ -1,5 +1,6 @@
 module.exports = function (content) {
-  console.log('loader2:', content)
+  const params = this.getOptions()
+  console.log(params)
 
   return content
 }
