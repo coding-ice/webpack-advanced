@@ -1247,6 +1247,7 @@ const webpackConfig = smp.wrap({
 ```
 
 ## BundleAnalyzer
+**本代码详见:**`16.bundle_analyzer`  
 对我们构建的**产物**进行分析，可以分析包的大小，比如`dayjs`包，如果占用项目大小较大，我们就可以考虑自己封装一个，从而减少包的代码体积
 ```js
 // webpack.config.js
@@ -1257,3 +1258,126 @@ plugins: [
 ],
 ```
 ![image.png](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5b0cf577413b4cd7b98345b370ec7270~tplv-k3u1fbpfcp-jj-mark:0:0:0:0:q75.image#?w=3024&h=1648&s=2113234&e=png&b=99e1c9)
+
+## 自定义loader
+**本代码详见:**`17.custom_loader`  
+前面我们有使用过`style-loader babel-loader`等，那么现在我们就在自定义`loader`,让我们对`loader`了解的更加透彻
+### 起手式
+```js
+// loaders
+// ice-loader1.js
+module.exports = function (content) {
+  console.log('loader1:', content)
+
+  return content
+}
+// ice-loader2.js
+module.exports = function (content) {
+  console.log('loader2:', content)
+  
+  return content
+}
+
+// webpack.config.js
+module.exports = {
+  resolveLoader: {
+    modules: ['node_modules', 'loaders'],
+  },
+  module: {
+    rules: [{ test: /.js$/, use: ['ice-loader1.js', 'ice-loader2.js'] }],
+  },
+}
+```
+简单走读代码：定义了两个`loader`文件，即（`loader1/loader2`）,`build`遇到`.js`结尾匹配`loader`文件，而`loader`的应用是从前往后，即`loader2`先执行，然后`loader1`执行
+
+### 同步loader
+我们在匹配规则中，有匹配两个`loader`，现在要实现一个场景，`loader2`中会传递一些数据给`loader1`进行处理
+```js
+// sync_loaders
+// loader2.js
+module.exports = function (content) {
+  console.log('loader2:', content)
+  
+  return content + 'ice'
+}
+// loader1.js
+module.exports = function (content) {
+  console.log('loader1:', content)
+
+  return content
+}
+```
+当我们进行`build`,先匹配`loader2`,然后把匹配的结果加上`ice`,传递给下一个`loader`，即`loader1`
+
+### 异步loader
+```js
+module.exports = function (content) {
+  console.log('loader2:', content)
+  const callback = this.async()
+
+  setTimeout(() => {
+    callback(null, content + 'ice')
+  }, 3000)
+}
+```
+在同步的基础上`this.async()`,把参数通过回调函数的形式传递给下一个`loader`,其中第一个实参为`error`，第二个为返回值
+
+### 接受参数/校验参数
+**接受参数**
+```js
+// params_loaders
+module.exports = function (content) {
+  const params = this.getOptions()
+  console.log(params)
+
+  return content
+}
+
+// webpack.config.js
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /.js$/,
+        use: {
+          loader: 'params-loader',
+          options: {
+            name: 'ice',
+            age: 20,
+          },
+        },
+      },
+    ],
+  }
+}
+```
+**校验参数**
+```js
+// validate-loader.js
+const { validate } = require('schema-utils')
+const schema = require('./schema.json')
+
+module.exports = function (content) {
+  const options = this.getOptions()
+  validate(schema, options)
+
+  return content
+}
+
+// schema.json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "必须是字符串类型"
+    },
+    "age": {
+      "type": "number",
+      "description": "必须是数字类型"
+    }
+  }
+}
+```
+## loader演练
+**本代码详见:** `18.babel_loader & 19.md_loader`
