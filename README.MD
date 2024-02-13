@@ -1379,5 +1379,3 @@ module.exports = function (content) {
   }
 }
 ```
-## loader演练
-**本代码详见:** `18.babel_loader & 19.md_loader`
